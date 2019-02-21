@@ -52,6 +52,8 @@ function purchase() {
         //capture user response in variables
         var chosenID = input.item_id;
         var userAmount = input.quantity;
+        
+        //query mysql table to grab selected item information
         var queryStr = 'SELECT * FROM products WHERE ?';
 
 
@@ -66,12 +68,15 @@ function purchase() {
             // if user amount requested is less than or equal to stock quantity value, subtract value from stock quantity
             else {
                 var itemData = data[0];
+
+                //if the requested amount is less than or equal to the quantity in stock, purchase is valid
                 if (userAmount <= itemData.stock_quantity) {
                     console.log("Sending out your order!");
 
-                    //capture query string to update table
+                    //capture query string to update table where the item is equal to the user chosen id
                     var updateQueryStr = 'UPDATE products SET stock_quantity = ' + (itemData.stock_quantity - userAmount) + ' WHERE item_id = ' + chosenID;
 
+                    //update the table stock quantity
                     connection.query(updateQueryStr, function (err, data) {
                         if (err) throw err;
 
@@ -99,7 +104,7 @@ function purchase() {
 }
 
 
-//start function, display table and prompt user
+//start function, display table, start function grabs table at current state, will always display most recently updated
 function start() {
     connection.query("SELECT * FROM products", function (err, res) {
         if (err) throw err;
@@ -127,4 +132,5 @@ function run() {
     start();
 }
 
+//execute entire application
 run();
