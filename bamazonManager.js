@@ -64,11 +64,11 @@ function managerPrompt() {
 
 //create view products for sale function
 function view() {
-    connection.query("SELECT * FROM products", function (err, res) {
+    connection.query("SELECT * FROM products", function (err, data) {
         if (err) throw err;
 
         //display table
-        console.table(res);
+        console.table(data);
 
     });
 }
@@ -77,19 +77,15 @@ function view() {
 function low() {
     
     //capture search query
-    var queryStr = "SELECT * FROM products WHERE stock_quantity < 20";
+    var queryStr = "SELECT * FROM products WHERE stock_quantity < 50";
 
     connection.query(queryStr, function(err, data) {
         if (err) throw err;
-         var lowItem = "";
-         for (var i = 0; data.length < i++; ) {
-            lowItem = '';
-			lowItem += 'Item ID: ' + data[i].item_id + '  //  ';
-            lowItem += 'Product Name: ' + data[i].product_name + ' // ';
-            lowItem += 'Quantity: ' + data[i].stock_quantity + '\n';
 
-            console.log(lowItem);
-         }
+        console.table(data);
+
+        connection.end();
+    
     })
 }
 
@@ -177,10 +173,12 @@ function newProduct() {
         var queryStr = "INSERT INTO products SET ?";
 
         //connect to database and add new product to table
-        connection.query(queryStr, input, function(err, res, fields) {
+        connection.query(queryStr, input, function(err, data, fields) {
             if (err) throw err;
 
-            console.log("The new item has been added to inventory and given the ID of " + res.inserID);
+            console.log("The new item has been added to the inventory \n");
+            
+            console.table(data);
         
             connection.end();
         
