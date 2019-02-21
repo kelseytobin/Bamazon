@@ -1,0 +1,124 @@
+//grab packages
+var mysql = require("mysql");
+var inquirer = require("inquirer");
+var cTable = require("console.table");
+
+//create connection information
+var connection = mysql.createConnection({
+    host: "localhost",
+
+    port: 3306,
+
+    user: "root",
+
+    password: "Ktoby091589!",
+
+    database: "bamazonDB"
+});
+
+//validate number function, ensure user input is greater than 0
+function validateNumber(value) {
+    var valid = Number.isInteger(parseFloat(value));
+    var sign = Math.sign(value);
+
+    if (valid && (sign === 1)) {
+        return true;
+    } else {
+        return "Please enter a number";
+    }
+}
+
+
+//create function that lists a set of manager menu items and prompts user to select. execute functionality based on user selection through switch case statements
+function managerPrompt() {
+    inquirer.prompt([{
+        type: "list",
+        name: "from",
+        message: "Select from the following options: ",
+        choices: ["View Products for Sale", "View Low Inventory", "Add to Inventory", "Add New Product"],
+        filter: function(val) {
+                
+                if (val === "View Products for Sale") {
+                    return 'view';
+                } else if (val === "Add to Inventory") {
+                    return 'add';
+                }
+        }
+    }]).then(function(input) {
+        if (input.from === 'view') {
+            view();
+        } else if (input.from === 'add') {
+            add();
+        }
+    });
+}
+
+
+//create view products for sale function
+function view() {
+    connection.query("SELECT * FROM products", function (err, res) {
+        if (err) throw err;
+
+        //display table
+        console.table(res);
+
+    });
+}
+
+
+//create add to inventory function
+function add() {
+    view();
+    inquirer.prompt([{
+        type: "input",
+        name: "item_id",
+        message: "Enter the ID of the product you would like to increase stock quantity",
+        validate: validateNumber,
+        filter: Number
+    },
+    {
+        type: "input",
+        name: "quantity",
+        message: "How many units would you like to add?",
+        validate: validateNumber,
+        filter: Number
+    }]).then(function(input) {
+        //capture user response in variables
+        var chosenID = input.item_id;
+        var userAmount = input.quantity;
+        
+        //query mysql table to grab selected item information
+        var queryStr = 'SELECT * FROM products WHERE ?';
+
+
+        connection.query(queryStr, {
+            item_id: chosenID
+        }, function (err, data) {
+            if (err) throw err;
+
+            else {
+                var itemData = data[0];
+
+                //capture query string to update table where the item is equal to the user chosen id
+                var updateQueryStr = 'UPDATE products SET stock_quantity = ' + (itemData.stock_quantity + userAmount) + ' WHERE item_id = ' + chosenID;
+
+                //update the table stock quantity
+                connection.query(updateQueryStr, function (err, data) {
+                    if (err) throw err;
+
+                    console.log("The inventory has been updated. The new stock quantity is " + itemData.stock_quantity + userAmount);
+
+                    connection.end();
+
+                });
+            }
+        })
+    })
+}
+
+ 
+function run() {
+    managerPrompt();
+}
+
+run();
