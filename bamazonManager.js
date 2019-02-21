@@ -40,16 +40,24 @@ function managerPrompt() {
                 
                 if (val === "View Products for Sale") {
                     return 'view';
+                } else if (val === "View Low Inventory") {
+                    return 'low';
                 } else if (val === "Add to Inventory") {
                     return 'add';
+                } else if (val === "Add New Product") {
+                    return 'newProduct'
                 }
-        }
-    }]).then(function(input) {
-        if (input.from === 'view') {
-            view();
-        } else if (input.from === 'add') {
-            add();
-        }
+            }
+        }]).then(function(input) {
+            if (input.from === 'view') {
+                view();
+            } else if (input.from === 'low') {
+                low();
+            } else if (input.from === 'add') {
+                add();
+            } else if (input.from === 'newProduct') {
+                newProduct();
+            }
     });
 }
 
@@ -63,6 +71,26 @@ function view() {
         console.table(res);
 
     });
+}
+
+//create view low inventory function
+function low() {
+    
+    //capture search query
+    var queryStr = "SELECT * FROM products WHERE stock_quantity < 20";
+
+    connection.query(queryStr, function(err, data) {
+        if (err) throw err;
+         var lowItem = "";
+         for (var i = 0; data.length < i++; ) {
+            lowItem = '';
+			lowItem += 'Item ID: ' + data[i].item_id + '  //  ';
+            lowItem += 'Product Name: ' + data[i].product_name + ' // ';
+            lowItem += 'Quantity: ' + data[i].stock_quantity + '\n';
+
+            console.log(lowItem);
+         }
+    })
 }
 
 
@@ -113,6 +141,50 @@ function add() {
                 });
             }
         })
+    })
+}
+
+//create add new product function
+function newProduct() {
+    inquirer.prompt([{
+        type: "input",
+        name: "product_name",
+        message: "Please enter the name of the new item"
+    },
+    {
+        type: "input",
+        name: "department_name",
+        message: "Please enter the department name of the new item"  
+    },
+    {
+        type: "input",
+        name: "price",
+        message: "Please enter the cost per single unit of the new item",
+        validate: validateNumber
+    },
+    {
+        type: "input",
+        name: "stock_quantity",
+        message: "How many units would you like to add",
+        validate: validateNumber
+    }]).then(function(input){
+        //display input back to user
+        console.log("New Item: \n product_name = " + input.product_name + "\n" +
+                    "department_name = " + input.department_name + "\n" +
+                    "price = " + input.price + "\n" + "stock_quantity = " + input.stock_quantity);
+        
+        //declare search query
+        var queryStr = "INSERT INTO products SET ?";
+
+        //connect to database and add new product to table
+        connection.query(queryStr, input, function(err, res, fields) {
+            if (err) throw err;
+
+            console.log("The new item has been added to inventory and given the ID of " + res.inserID);
+        
+            connection.end();
+        
+        });
     })
 }
 
