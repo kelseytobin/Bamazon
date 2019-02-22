@@ -130,7 +130,7 @@ function add() {
                 connection.query(updateQueryStr, function (err, data) {
                     if (err) throw err;
 
-                    console.log("The inventory has been updated. The new stock quantity is " + itemData.stock_quantity + userAmount);
+                    console.log("The inventory has been updated");
 
                     connection.end();
 
